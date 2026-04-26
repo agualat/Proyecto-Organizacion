@@ -13,14 +13,38 @@ class CPU:
         self.salida = None
         self.estado = "FETCH"
         self.halt = False
+        self.historial = []
 
     def cargar_programa(self, programa):
+        self.memoria = [None] * 16
         for i, instruccion in enumerate(programa):
-            self.memoria[i] = instruccion
+            if i < len(self.memoria):
+                self.memoria[i] = instruccion
+
+        self.PC = 0
+        self.IR = None
+        self.salida = None
+        self.estado = "FETCH"
+        self.halt = False
+        self.historial = []
+
+    def guardar_estado(self):
+        estado_actual = {
+            "PC": self.PC,
+            "IR": self.IR,
+            "registros": self.registros.copy(),
+            "memoria": self.memoria.copy(),
+            "estado": self.estado,
+            "salida": self.salida,
+            "halt": self.halt
+        }
+        self.historial.append(estado_actual)
 
     def step(self):
         if self.halt:
             return
+
+        self.guardar_estado()
 
         if self.estado == "FETCH":
             self.IR = self.memoria[self.PC]
@@ -30,12 +54,14 @@ class CPU:
             self.estado = "EXECUTE"
 
         elif self.estado == "EXECUTE":
-            self.ejecutar(self.IR)
+            if self.IR is not None:
+                self.ejecutar(self.IR)
             self.estado = "WRITEBACK"
 
         elif self.estado == "WRITEBACK":
-            self.PC += 1
-            self.estado = "FETCH"
+            if not self.halt:
+                self.PC += 1
+                self.estado = "FETCH"
 
     def ejecutar(self, instruccion):
         partes = instruccion.split()
@@ -46,20 +72,35 @@ class CPU:
             val = int(partes[2])
             self.registros[reg] = val
 
-        elif op == "ADD":
-            r1 = partes[1].strip(",")
-            r2 = partes[2]
-            self.registros[r1] += self.registros[r2]
-
-        elif op == "SUB":
-            r1 = partes[1].strip(",")
-            r2 = partes[2]
-            self.registros[r1] -= self.registros[r2]
-
         elif op == "MOV":
             r1 = partes[1].strip(",")
             r2 = partes[2]
             self.registros[r1] = self.registros[r2]
+
+        elif op == "ADD":
+            r1 = partes[1].strip(",")
+            r2 = partes[2]
+            self.registros[r1] = self.registros[r1] + self.registros[r2]
+
+        elif op == "SUB":
+            r1 = partes[1].strip(",")
+            r2 = partes[2]
+            self.registros[r1] = self.registros[r1] - self.registros[r2]
+
+        elif op == "AND":
+            r1 = partes[1].strip(",")
+            r2 = partes[2]
+            self.registros[r1] = self.registros[r1] & self.registros[r2]
+
+        elif op == "OR":
+            r1 = partes[1].strip(",")
+            r2 = partes[2]
+            self.registros[r1] = self.registros[r1] | self.registros[r2]
+
+        elif op == "STORE":
+            r = partes[1].strip(",")
+            direccion = int(partes[2])
+            self.memoria[direccion] = self.registros[r]
 
         elif op == "PRINT":
             r = partes[1]
