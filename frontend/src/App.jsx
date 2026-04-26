@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const FLOW_BY_STAGE = {
-  FETCH: ["memory", "bus", "ir"],
-  DECODE: ["ir", "control", "alu"],
-  EXECUTE: ["registers", "alu", "bus"],
-  WRITEBACK: ["alu", "registers", "output"]
+  FETCH: ["memory-core", "core-ir"],
+  DECODE: ["ir-core", "core-alu"],
+  EXECUTE: ["registers-alu", "alu-outputbus"],
+  WRITEBACK: ["alu-registers", "alu-crt"]
 };
 
 const STAGES = ["FETCH", "DECODE", "EXECUTE", "WRITEBACK"];
@@ -42,29 +42,6 @@ function parseInstruction(ir) {
   return { op, args };
 }
 
-function DataPacket({ index }) {
-  return (
-    <div
-      className="data-packet"
-      style={{ animationDelay: `${index * 0.2}s` }}
-    />
-  );
-}
-
-function FlowRail({ active, children }) {
-  return (
-    <div className={`flow-rail ${active ? "active" : ""}`}>
-      {active && (
-        <>
-          <DataPacket index={0} />
-          <DataPacket index={1} />
-        </>
-      )}
-      {children}
-    </div>
-  );
-}
-
 export function App() {
   const [cpu, setCpu] = useState(initialCpu);
   const [history, setHistory] = useState([]);
@@ -74,7 +51,8 @@ export function App() {
   const tickRef = useRef(null);
 
   const instruction = useMemo(() => parseInstruction(cpu.IR), [cpu.IR]);
-  const activeFlow = FLOW_BY_STAGE[cpu.estado] ?? [];
+  const activeTraces = FLOW_BY_STAGE[cpu.estado] ?? [];
+  const opcodeClass = `op-${instruction.op.toLowerCase()}`;
 
   const canStep = !loading && !cpu.halt;
 
@@ -173,23 +151,21 @@ export function App() {
   return (
     <div className="app-shell">
       <div className="scanlines" />
-      <header
-        className="topbar"
-      >
+      <header className="topbar">
         <div>
-          <p className="eyebrow">Sistema de Visualizacion</p>
-          <h1>Laboratorio Ciberpunk: CPU de 8 bits</h1>
+          <p className="eyebrow">Laboratorio Ciberpunk · Arquitectura en Vivo</p>
+          <h1>Data Bus Grid / Computador de 8 bits</h1>
         </div>
         <div className="status-pill">
-          <span>Estado</span>
+          <span>Ciclo Activo</span>
           <strong>{cpu.estado}</strong>
         </div>
       </header>
 
-      <main className="layout">
-        <section className="panel command-panel">
-          <h2>Terminal de Control</h2>
-          <p className="panel-subtitle">Carga programa, ejecuta ciclos y observa el flujo interno.</p>
+      <main className="machine-layout">
+        <section className="panel terminal-rack">
+          <h2>Consola de Operacion</h2>
+          <p className="panel-subtitle">Control manual de reloj, carga de programa y monitoreo en caliente.</p>
 
           <div className="command-grid">
             <button onClick={loadProgram} disabled={loading}>
@@ -211,7 +187,8 @@ export function App() {
 
           {error && <p className="error-line">{error}</p>}
 
-          <div className="register-grid">
+          <div className="register-bank">
+            <p className="subhead">Banco de Registros</p>
             {Object.entries(cpu.registros).map(([key, value]) => (
               <div key={key} className="register-card">
                 <span>{key}</span>
@@ -220,13 +197,13 @@ export function App() {
             ))}
           </div>
 
-          <div className="meta-grid">
+          <div className="meta-grid rack-metrics">
             <div>
-              <span>PC</span>
+              <span>Program Counter</span>
               <strong>{cpu.PC}</strong>
             </div>
             <div>
-              <span>IR</span>
+              <span>Instruction Register</span>
               <strong>{cpu.IR ?? "(vacio)"}</strong>
             </div>
             <div>
@@ -240,9 +217,83 @@ export function App() {
           </div>
         </section>
 
-        <section className="panel flow-panel">
-          <h2>Data Bus y Operaciones</h2>
-          <p className="panel-subtitle">Animacion en tiempo real del ciclo: FETCH -&gt; DECODE -&gt; EXECUTE -&gt; WRITEBACK.</p>
+        <section className="panel motherboard-panel">
+          <h2>Chasis de Computo</h2>
+          <p className="panel-subtitle">Vista fisica de modulos, buses y transito de datos durante cada etapa.</p>
+
+          <div className="machine-bay">
+            <div className="bay-grid" />
+            <div className={`motherboard ${opcodeClass}`}>
+              <svg className="bus-svg" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+                <path className="trace-base" d="M 292 148 L 496 148 L 496 250" />
+                <path className={`trace-active ${activeTraces.includes("memory-core") ? "on" : ""}`} d="M 292 148 L 496 148 L 496 250" />
+
+                <path className="trace-base" d="M 592 148 L 700 148" />
+                <path className={`trace-active ${activeTraces.includes("core-ir") ? "on" : ""}`} d="M 592 148 L 700 148" />
+
+                <path className="trace-base" d="M 796 148 L 496 148 L 496 250" />
+                <path className={`trace-active ${activeTraces.includes("ir-core") ? "on" : ""}`} d="M 796 148 L 496 148 L 496 250" />
+
+                <path className="trace-base" d="M 496 196 L 496 250" />
+                <path className={`trace-active ${activeTraces.includes("core-alu") ? "on" : ""}`} d="M 496 196 L 496 250" />
+
+                <path className="trace-base" d="M 296 400 L 496 400 L 496 350" />
+                <path className={`trace-active ${activeTraces.includes("registers-alu") ? "on" : ""}`} d="M 296 400 L 496 400 L 496 350" />
+
+                <path className="trace-base" d="M 496 350 L 496 400 L 696 400" />
+                <path className={`trace-active ${activeTraces.includes("alu-outputbus") ? "on" : ""}`} d="M 496 350 L 496 400 L 696 400" />
+
+                <path className={`trace-active ${activeTraces.includes("alu-registers") ? "on" : ""}`} d="M 496 350 L 496 400 L 296 400" />
+                <path className={`trace-active ${activeTraces.includes("alu-crt") ? "on" : ""}`} d="M 496 350 L 496 400 L 696 400" />
+              </svg>
+
+              <div className="chip-module module-memory">
+                <h3>Memory Array</h3>
+                <p>Addr 0x{cpu.PC.toString(16).toUpperCase().padStart(2, "0")}</p>
+                <span>{cpu.memoria[cpu.PC] ?? "-- empty --"}</span>
+              </div>
+
+              <div className="chip-module module-control">
+                <h3>Control Unit</h3>
+                <p>Stage</p>
+                <span>{cpu.estado}</span>
+              </div>
+
+              <div className="chip-module module-ir">
+                <h3>Instruction Latch</h3>
+                <p>IR</p>
+                <span>{cpu.IR ?? "NOP"}</span>
+              </div>
+
+              <div className="chip-module module-alu diamond-core">
+                <h3>ALU Core</h3>
+                <p>OpCode</p>
+                <span>{instruction.op}</span>
+              </div>
+
+              <div className="chip-module module-registers">
+                <h3>Register Stack</h3>
+                <p>
+                  R0:{cpu.registros.R0} R1:{cpu.registros.R1}
+                </p>
+                <span>
+                  R2:{cpu.registros.R2} R3:{cpu.registros.R3}
+                </span>
+              </div>
+
+              <div className="chip-module module-output crt">
+                <h3>CRT Output</h3>
+                <p>Signal</p>
+                <span>{cpu.salida ?? "NO SIGNAL"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div key={`${cpu.estado}-${cpu.IR}`} className={`operation-box ${opcodeClass}`}>
+            <span>Operacion en Ejecucion</span>
+            <strong>{instruction.op}</strong>
+            <code>{instruction.args.join(" | ") || "Sin operandos"}</code>
+          </div>
 
           <div className="stage-strip">
             {STAGES.map((stage) => (
@@ -251,31 +302,11 @@ export function App() {
               </div>
             ))}
           </div>
-
-          <div className="flow-grid">
-            <div className={`node ${activeFlow.includes("memory") ? "hot" : ""}`}>MEMORIA</div>
-            <FlowRail active={activeFlow.includes("bus")} />
-            <div className={`node ${activeFlow.includes("ir") ? "hot" : ""}`}>IR</div>
-
-            <FlowRail active={activeFlow.includes("control")} />
-            <div className={`node diamond ${activeFlow.includes("alu") ? "hot" : ""}`}>ALU</div>
-            <FlowRail active={activeFlow.includes("registers")} />
-
-            <div className={`node ${activeFlow.includes("registers") ? "hot" : ""}`}>REGISTROS</div>
-            <FlowRail active={activeFlow.includes("output")} />
-            <div className={`node ${activeFlow.includes("output") ? "hot success" : ""}`}>OUTPUT</div>
-          </div>
-
-          <div key={`${cpu.estado}-${cpu.IR}`} className="operation-box">
-            <span>Operacion Actual</span>
-            <strong>{instruction.op}</strong>
-            <code>{instruction.args.join(" | ") || "Sin operandos"}</code>
-          </div>
         </section>
 
-        <section className="panel memory-panel">
-          <h2>Memoria (16 celdas)</h2>
-          <div className="memory-grid">
+        <section className="panel memory-drawer">
+          <h2>Bandeja de Memoria</h2>
+          <div className="memory-grid chip-grid">
             {cpu.memoria.map((value, index) => (
               <div key={index} className={`memory-cell ${cpu.PC === index ? "pointer" : ""}`}>
                 <span>0x{index.toString(16).toUpperCase()}</span>
@@ -285,8 +316,8 @@ export function App() {
           </div>
         </section>
 
-        <section className="panel history-panel">
-          <h2>Bitacora de Ejecucion</h2>
+        <section className="panel telemetry-panel">
+          <h2>Telemetria de Bus</h2>
           <div className="history-list">
             {history.length === 0 && <p className="empty">Sin historial aun.</p>}
             {history.map((item, idx) => (

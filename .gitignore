@@ -1,5 +1,14 @@
 opencode.json
 stitch_downloads/
+.agents/
+skills-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyc.*
+.python-version
 
 # Node / Frontend
 node_modules/
