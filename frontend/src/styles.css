@@ -366,6 +366,40 @@ button:disabled {
   margin-top: 0.65rem;
 }
 
+.instruction-panel {
+  margin-top: 0.9rem;
+  border: 1px solid var(--muted);
+  padding: 0.6rem;
+  background: rgba(10, 14, 20, 0.6);
+}
+
+.instruction-panel h3 {
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+  color: var(--primary);
+}
+
+.instruction-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.instruction-panel li {
+  display: flex;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  color: #c5d0d9;
+}
+
+.instruction-panel li span {
+  font-family: "Share Tech Mono", monospace;
+  color: var(--primary);
+  min-width: 64px;
+}
+
 .stage-chip {
   border: 1px solid var(--muted);
   padding: 0.24rem 0.5rem;

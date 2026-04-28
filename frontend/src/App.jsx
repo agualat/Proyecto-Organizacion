@@ -153,8 +153,8 @@ export function App() {
       <div className="scanlines" />
       <header className="topbar">
         <div>
-          <p className="eyebrow">Laboratorio Ciberpunk · Arquitectura en Vivo</p>
-          <h1>Data Bus Grid / Computador de 8 bits</h1>
+          <p className="eyebrow">Laboratorio Ciberpunk · Simulador MIPS</p>
+          <h1>Data Bus Grid / Arquitectura MIPS</h1>
         </div>
         <div className="status-pill">
           <span>Ciclo Activo</span>
@@ -165,7 +165,7 @@ export function App() {
       <main className="machine-layout">
         <section className="panel terminal-rack">
           <h2>Consola de Operacion</h2>
-          <p className="panel-subtitle">Control manual de reloj, carga de programa y monitoreo en caliente.</p>
+          <p className="panel-subtitle">Simulacion de pipeline MIPS: IF → ID → EX → MEM → WB.</p>
 
           <div className="command-grid">
             <button onClick={loadProgram} disabled={loading}>
@@ -199,11 +199,11 @@ export function App() {
 
           <div className="meta-grid rack-metrics">
             <div>
-              <span>Program Counter</span>
+              <span>Program Counter (PC)</span>
               <strong>{cpu.PC}</strong>
             </div>
             <div>
-              <span>Instruction Register</span>
+              <span>Instruction Register (IR)</span>
               <strong>{cpu.IR ?? "(vacio)"}</strong>
             </div>
             <div>
@@ -214,6 +214,21 @@ export function App() {
               <span>Halt</span>
               <strong>{cpu.halt ? "True" : "False"}</strong>
             </div>
+          </div>
+
+          <div className="instruction-panel">
+            <h3>Instruction Set (MIPS-lite)</h3>
+            <ul>
+              <li><span>LOAD</span> Carga inmediato en registro</li>
+              <li><span>STORE</span> Guarda registro en memoria</li>
+              <li><span>MOV</span> Copia entre registros</li>
+              <li><span>ADD</span> Suma registros</li>
+              <li><span>SUB</span> Resta registros</li>
+              <li><span>AND</span> AND bit a bit</li>
+              <li><span>OR</span> OR bit a bit</li>
+              <li><span>PRINT</span> Envia a salida</li>
+              <li><span>HALT</span> Detiene ejecucion</li>
+            </ul>
           </div>
         </section>
 
