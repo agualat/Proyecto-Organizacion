@@ -31,7 +31,8 @@ def cargar_programa():
 
 @app.post("/cpu/step")
 def ejecutar_paso():
-    cpu.step()
+    if not cpu.halt:
+        cpu.step()
 
     return {
         "estado": cpu.estado,

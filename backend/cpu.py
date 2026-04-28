@@ -47,7 +47,18 @@ class CPU:
         self.guardar_estado()
 
         if self.estado == "FETCH":
+            if self.PC < 0 or self.PC >= len(self.memoria):
+                self.IR = None
+                self.halt = True
+                self.estado = "HALT"
+                return
+
             self.IR = self.memoria[self.PC]
+            if self.IR is None:
+                self.halt = True
+                self.estado = "HALT"
+                return
+
             self.estado = "DECODE"
 
         elif self.estado == "DECODE":
@@ -60,8 +71,13 @@ class CPU:
 
         elif self.estado == "WRITEBACK":
             if not self.halt:
-                self.PC += 1
-                self.estado = "FETCH"
+                proximo_pc = self.PC + 1
+                if proximo_pc >= len(self.memoria):
+                    self.halt = True
+                    self.estado = "HALT"
+                else:
+                    self.PC = proximo_pc
+                    self.estado = "FETCH"
 
     def ejecutar(self, instruccion):
         partes = instruccion.split()
